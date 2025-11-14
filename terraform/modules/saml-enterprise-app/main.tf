@@ -16,6 +16,6 @@ resource "azuread_service_principal_token_signing_certificate" "saml_cert" {
 
 resource "azuread_application_redirect_uris" "reply" {
   application_id = azuread_application.saml.id
-  type           = "Web"   # ✅ case-sensitive
+  type           = "Web"  # <- capital W
   redirect_uris  = [var.reply_url]
 }
