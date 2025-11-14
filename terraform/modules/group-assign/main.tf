@@ -5,7 +5,7 @@ resource "azuread_group" "g" {
   description      = each.value.description
 }
 
-# Assign groups to the app roles on the target SP
+# Assign groups to the app roles on the target Service Principal
 resource "azuread_app_role_assignment" "primary" {
   for_each = {
     for g in var.groups : g.display_name => {
