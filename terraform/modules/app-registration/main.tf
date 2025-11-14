@@ -2,6 +2,7 @@ resource "azuread_application" "app" {
   display_name     = var.display_name
   sign_in_audience = "AzureADMyOrg"
 
+  # OIDC platforms
   dynamic "web" {
     for_each = var.enable_web ? [1] : []
     content {
@@ -28,18 +29,21 @@ resource "azuread_application" "app" {
       redirect_uris = var.native_redirect_uris
     }
   }
+
+  # ✅ App roles inline (avoid separate resource)
+  dynamic "app_role" {
+    for_each = { for r in var.app_roles : r.value => r }
+    content {
+      value                = app_role.value.value
+      display_name         = app_role.value.display_name
+      description          = app_role.value.description
+      allowed_member_types = app_role.value.allowed_member_types
+      enabled              = true
+    }
+  }
 }
 
-resource "azuread_application_app_role" "roles" {
-  for_each             = { for r in var.app_roles : r.value => r }
-  application_id       = azuread_application.app.id
-  value                = each.value.value
-  display_name         = each.value.display_name
-  description          = each.value.description
-  allowed_member_types = each.value.allowed_member_types
-  enabled              = true
-}
-
+# Keep creating a Service Principal for the app
 resource "azuread_service_principal" "sp" {
   client_id = azuread_application.app.client_id
 }
