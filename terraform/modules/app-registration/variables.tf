@@ -1,9 +1,16 @@
-variable "display_name" {
-  type        = string
-  description = "Display name for the Azure AD application"
-}
+variable "display_name" { type = string }
 
 variable "enable_web" {
+  type    = bool
+  default = true
+}
+
+variable "enable_spa" {
+  type    = bool
+  default = false
+}
+
+variable "enable_native" {
   type    = bool
   default = false
 }
@@ -18,19 +25,9 @@ variable "web_logout_url" {
   default = null
 }
 
-variable "enable_spa" {
-  type    = bool
-  default = false
-}
-
 variable "spa_redirect_uris" {
   type    = list(string)
   default = []
-}
-
-variable "enable_native" {
-  type    = bool
-  default = false
 }
 
 variable "native_redirect_uris" {
@@ -39,12 +36,11 @@ variable "native_redirect_uris" {
 }
 
 variable "app_roles" {
-  description = "List of app roles to create"
   type = list(object({
     value                = string
     display_name         = string
     description          = string
-    allowed_member_types = list(string)
+    allowed_member_types = list(string) # e.g. ["User","Application"]
   }))
   default = []
 }
