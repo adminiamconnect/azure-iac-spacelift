@@ -20,5 +20,3 @@ resource "azuread_application_redirect_uris" "reply" {
   type           = "web"
   redirect_uris  = [var.reply_url]
 }
-
-output "service_principal_id" { value = azuread_service_principal.saml_sp.id }
