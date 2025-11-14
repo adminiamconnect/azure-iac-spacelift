@@ -43,9 +43,3 @@ resource "azuread_application_app_role" "roles" {
 resource "azuread_service_principal" "sp" {
   client_id = azuread_application.app.client_id
 }
-
-output "application_id"        { value = azuread_application.app.id }
-output "client_id"             { value = azuread_application.app.client_id }
-output "service_principal_id"  { value = azuread_service_principal.sp.id }
-# Map of role value => GUID on the SP (used for group assignments)
-output "app_role_map"          { value = azuread_service_principal.sp.app_role_ids }
