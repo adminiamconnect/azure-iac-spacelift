@@ -5,6 +5,7 @@ resource "azuread_group" "g" {
   description      = each.value.description
 }
 
+# Assign groups to the app roles on the target SP
 resource "azuread_app_role_assignment" "primary" {
   for_each = {
     for g in var.groups : g.display_name => {
@@ -15,16 +16,4 @@ resource "azuread_app_role_assignment" "primary" {
   app_role_id         = each.value.role_id
   principal_object_id = each.value.group_id
   resource_object_id  = var.app_sp_id
-}
-
-# Optional: assign default 'User' role on extras (customize as needed)
-resource "azuread_app_role_assignment" "extra_default" {
-  for_each = { for sp in var.extra_service_principals : sp => sp }
-  app_role_id         = try(var.app_role_map["User"], null)
-  principal_object_id = azuread_group.g[values(var.groups)[0].display_name].object_id
-  resource_object_id  = each.value
-
-  lifecycle {
-    ignore_changes = [app_role_id]
-  }
 }
