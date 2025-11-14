@@ -1,5 +1,5 @@
-# Generate stable GUIDs for each app role (keyed by role value)
-resource "random_uuid" "role_ids" {
+# Stable GUID per app role (keyed by the role's value)
+resource "random_uuid" "app_role" {
   for_each = { for r in var.app_roles : r.value => r }
 }
 
@@ -7,7 +7,7 @@ resource "azuread_application" "app" {
   display_name     = var.display_name
   sign_in_audience = "AzureADMyOrg"
 
-  # OIDC platforms
+  # ---- OIDC platform configs ----
   dynamic "web" {
     for_each = var.enable_web ? [1] : []
     content {
@@ -35,21 +35,22 @@ resource "azuread_application" "app" {
     }
   }
 
-  # Define app roles inline (each needs an explicit id)
+  # ---- App roles defined inline ----
+  # NOTE: Inline app_role requires an explicit 'id' and uses 'is_enabled' (not 'enabled')
   dynamic "app_role" {
     for_each = { for r in var.app_roles : r.value => r }
     content {
-      id                   = random_uuid.role_ids[app_role.key].result
+      id                   = random_uuid.app_role[app_role.key].result
       value                = app_role.value.value
       display_name         = app_role.value.display_name
       description          = app_role.value.description
       allowed_member_types = app_role.value.allowed_member_types
-      enabled              = true
+      is_enabled           = true
     }
   }
 }
 
-# Keep a Service Principal for this application (needed by outputs and group assignments)
+# Service principal for this application (needed by outputs and group assignments)
 resource "azuread_service_principal" "sp" {
   client_id = azuread_application.app.client_id
 }
