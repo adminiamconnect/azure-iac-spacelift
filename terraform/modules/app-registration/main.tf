@@ -30,7 +30,7 @@ resource "azuread_application" "app" {
     }
   }
 
-  # ✅ App roles inline (avoid separate resource)
+  # ✅ Define app roles inline (delete any separate azuread_application_app_role resource)
   dynamic "app_role" {
     for_each = { for r in var.app_roles : r.value => r }
     content {
@@ -43,7 +43,4 @@ resource "azuread_application" "app" {
   }
 }
 
-# Keep creating a Service Principal for the app
-resource "azuread_service_principal" "sp" {
-  client_id = azuread_application.app.client_id
-}
+# Keep creating
