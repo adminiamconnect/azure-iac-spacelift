@@ -1,3 +1,8 @@
+# Generate stable GUIDs for each app role (keyed by role value)
+resource "random_uuid" "role_ids" {
+  for_each = { for r in var.app_roles : r.value => r }
+}
+
 resource "azuread_application" "app" {
   display_name     = var.display_name
   sign_in_audience = "AzureADMyOrg"
@@ -30,10 +35,11 @@ resource "azuread_application" "app" {
     }
   }
 
-  # ✅ Define app roles inline (delete any separate azuread_application_app_role resource)
+  # Define app roles inline (each needs an explicit id)
   dynamic "app_role" {
     for_each = { for r in var.app_roles : r.value => r }
     content {
+      id                   = random_uuid.role_ids[app_role.key].result
       value                = app_role.value.value
       display_name         = app_role.value.display_name
       description          = app_role.value.description
@@ -43,4 +49,7 @@ resource "azuread_application" "app" {
   }
 }
 
-# Keep creating
+# Keep a Service Principal for this application (needed by outputs and group assignments)
+resource "azuread_service_principal" "sp" {
+  client_id = azuread_application.app.client_id
+}
