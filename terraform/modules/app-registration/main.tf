@@ -11,7 +11,7 @@ resource "azuread_application" "app" {
   dynamic "web" {
     for_each = var.enable_web ? [1] : []
     content {
-      homepage_url = var.web_logout_url != null ? replace(var.web_logout_url, "/logout$", "") : null
+      homepage_url  = var.web_logout_url != null ? replace(var.web_logout_url, "/logout$", "") : null
       redirect_uris = var.web_redirect_uris
       implicit_grant {
         access_token_issuance_enabled = true
@@ -36,7 +36,6 @@ resource "azuread_application" "app" {
   }
 
   # ---- App roles defined inline ----
-  # NOTE: Inline app_role requires an explicit 'id' and uses 'is_enabled' (not 'enabled')
   dynamic "app_role" {
     for_each = { for r in var.app_roles : r.value => r }
     content {
