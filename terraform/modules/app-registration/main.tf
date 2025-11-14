@@ -1,0 +1,51 @@
+resource "azuread_application" "app" {
+  display_name     = var.display_name
+  sign_in_audience = "AzureADMyOrg"
+
+  dynamic "web" {
+    for_each = var.enable_web ? [1] : []
+    content {
+      homepage_url = var.web_logout_url != null ? replace(var.web_logout_url, "/logout$", "") : null
+      redirect_uris = var.web_redirect_uris
+      implicit_grant {
+        access_token_issuance_enabled = true
+        id_token_issuance_enabled     = true
+      }
+      logout_url = var.web_logout_url
+    }
+  }
+
+  dynamic "single_page_application" {
+    for_each = var.enable_spa ? [1] : []
+    content {
+      redirect_uris = var.spa_redirect_uris
+    }
+  }
+
+  dynamic "public_client" {
+    for_each = var.enable_native ? [1] : []
+    content {
+      redirect_uris = var.native_redirect_uris
+    }
+  }
+}
+
+resource "azuread_application_app_role" "roles" {
+  for_each             = { for r in var.app_roles : r.value => r }
+  application_id       = azuread_application.app.id
+  value                = each.value.value
+  display_name         = each.value.display_name
+  description          = each.value.description
+  allowed_member_types = each.value.allowed_member_types
+  enabled              = true
+}
+
+resource "azuread_service_principal" "sp" {
+  client_id = azuread_application.app.client_id
+}
+
+output "application_id"        { value = azuread_application.app.id }
+output "client_id"             { value = azuread_application.app.client_id }
+output "service_principal_id"  { value = azuread_service_principal.sp.id }
+# Map of role value => GUID on the SP (used for group assignments)
+output "app_role_map"          { value = azuread_service_principal.sp.app_role_ids }
